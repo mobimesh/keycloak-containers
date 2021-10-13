@@ -11,9 +11,9 @@ ENV PROXY_ADDRESS_FORWARDING false
 ENV JBOSS_HOME /opt/jboss/keycloak
 ENV LANG en_US.UTF-8
 
-ARG GIT_REPO
+ARG GIT_REPO=mobimesh/keycloak
 ARG GIT_BRANCH
-ARG KEYCLOAK_DIST=https://github.com/mobimesh/keycloak/releases/download/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
+ARG KEYCLOAK_DIST=https://github.com/keycloak/keycloak/releases/download/$KEYCLOAK_VERSION/keycloak-$KEYCLOAK_VERSION.tar.gz
 
 USER root
 
@@ -24,9 +24,17 @@ RUN /opt/jboss/tools/build-keycloak.sh
 
 USER 1000
 
+COPY ./scripts /opt/radius/scripts
+COPY ./cli /opt/radius/cli
+COPY ./config /config
+USER root
+RUN chown -R  1000 /config
+USER 1000
+RUN /opt/radius/scripts/docker-radius.sh
+RUN rm -rf /opt/jboss/keycloak/standalone/configuration/standalone_xml_history
 EXPOSE 8080
 EXPOSE 8443
-
-ENTRYPOINT [ "/opt/jboss/tools/docker-entrypoint.sh" ]
+EXPOSE 9990
+ENTRYPOINT [ "/opt/radius/scripts/docker-radius-entrypoint.sh" ]
 
 CMD ["-b", "0.0.0.0"]
