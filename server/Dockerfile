@@ -29,12 +29,19 @@ COPY ./cli /opt/radius/cli
 COPY ./config /config
 USER root
 RUN chown -R  1000 /config
+RUN mkdir -p /opt/radius/cacert
+RUN cp /etc/alternatives/jre/lib/security/cacerts /opt/radius/cacert/cacerts
+RUN chown -R  1000 /opt/radius
+RUN useradd -ms /bin/bash dockeruser
 USER 1000
+RUN mkdir /opt/radius/localcert
 RUN /opt/radius/scripts/docker-radius.sh
 RUN rm -rf /opt/jboss/keycloak/standalone/configuration/standalone_xml_history
 EXPOSE 8080
 EXPOSE 8443
 EXPOSE 9990
+
+USER root
 ENTRYPOINT [ "/opt/radius/scripts/docker-radius-entrypoint.sh" ]
 
 CMD ["-b", "0.0.0.0"]
