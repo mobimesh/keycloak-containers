@@ -29,7 +29,7 @@ services:
       - mariadb
     container_name: local_keycloak
     volumes:
-      - /opt/volumes/keycloak-conf:/config
+      - /opt/volumes/keycloak-conf:/keycloak-conf
     environment:
       DB_VENDOR: mariadb
       DB_ADDR: mariadb
@@ -50,15 +50,14 @@ services:
       RADIUS_COA: 'false'
       RADIUS_COA_PORT: 3799
       RADIUS_RADSEC: 'false'
-      RADIUS_RADSEC_PRIVATEKEY: "/config/private.key"
-      RADIUS_RADSEC_CERTIFICATE: "/config/public.crt"
+      RADIUS_RADSEC_PRIVATEKEY: "/keycloak-conf/private.key"
+      RADIUS_RADSEC_CERTIFICATE: "/keycloak-conf/public.crt"
     depends_on:
       - mariadb
     image: mobimesh/keycloak:latest
     ports:
       - 127.0.0.1:8080:8080
       - 1812:1812
-      - 1813:1813
     restart: unless-stopped
     networks:
       - backend

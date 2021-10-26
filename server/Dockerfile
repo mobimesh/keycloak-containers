@@ -27,7 +27,10 @@ USER 1000
 COPY ./scripts /opt/radius/scripts
 COPY ./cli /opt/radius/cli
 COPY ./config /config
+
 USER root
+RUN mkdir /keycloak-conf
+RUN chown -R  1000 /keycloak-conf
 RUN chown -R  1000 /config
 RUN chown -R  1000 /opt/radius
 USER 1000
