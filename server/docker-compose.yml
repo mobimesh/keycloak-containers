@@ -1,0 +1,64 @@
+version: '3'
+
+networks:
+  backend:
+    driver: bridge
+
+services:
+
+  mariadb:
+    image: mariadb:latest
+    container_name: local_mariadb
+    volumes:
+      - /opt/volumes/mariadb-conf:/etc/mysql/conf.d
+      - /opt/volumes/mariadb-data:/var/lib/mysql
+    networks:
+      - backend
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    restart: always
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_bin']
+
+  keycloak:
+    depends_on:
+      - mariadb
+    container_name: local_keycloak
+    volumes:
+      - /opt/volumes/keycloak-conf:/config
+    environment:
+      DB_VENDOR: mariadb
+      DB_ADDR: mariadb
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: password
+      JDBC_PARAMS: connectTimeout=30
+      KEYCLOAK_USER: local_admin
+      KEYCLOAK_PASSWORD: password
+      KEYCLOAK_LOGLEVEL: INFO
+      ROOT_LOGLEVEL: INFO
+      PROXY_ADDRESS_FORWARDING: 'true'
+      KEYCLOAK_FRONTEND_URL: https://idp.splashportal.eu/auth
+      RADIUS_SHARED_SECRET: secret
+      RADIUS_UDP: 'true'
+      RADIUS_UDP_AUTH_PORT: 1812
+      RADIUS_UDP_ACCOUNT_PORT: 1813
+      RADIUS_COA: 'false'
+      RADIUS_COA_PORT: 3799
+      RADIUS_RADSEC: 'false'
+      RADIUS_RADSEC_PRIVATEKEY: "/config/private.key"
+      RADIUS_RADSEC_CERTIFICATE: "/config/public.crt"
+    depends_on:
+      - mariadb
+    image: mobimesh/keycloak:latest
+    ports:
+      - 127.0.0.1:8080:8080
+      - 1812:1812
+      - 1813:1813
+    restart: unless-stopped
+    networks:
+      - backend
